@@ -1,0 +1,4 @@
+*.iso
+isodir/boot/cogito.bin
+*.bin
+*.o
