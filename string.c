@@ -8,11 +8,11 @@ size_t strlen(const char* str)
   return len;
 }
 
-void *memmove(void *dst, void *src, size_t size)
+void *memcopy(void *dst, void *src, size_t size)
 {
   char *dstp = (char*)dst;
   char *srcp  = (char*)src;
-  for (int i = size; i >= 0; i--) {
+  for (size_t i = 0; i < size; i++) {
     dstp[i] = srcp[i];
   }
 

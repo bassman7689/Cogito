@@ -3,8 +3,6 @@
 #include "tty.h"
 #include "kalloc.h"
 
-#define PGROUNDUP(sz)  (((sz)+PAGE_SIZE-1) & ~(PAGE_SIZE-1))
-
 struct page_head {
   struct page_head *next;
 };
@@ -22,13 +20,21 @@ void kfree(char* v)
 
 void freerange(void *start, void *end)
 {
-  char *p;
-  p = (char*)PGROUNDUP((uint32_t)start);
-  for(; p + PAGE_SIZE <= (char*)end; p += PAGE_SIZE) {
-    terminal_writestring("freeing page at: ");
-    terminal_writehex((uint32_t)p);
+  char *p = (char*)PGROUNDUP((uintptr_t)start);
+  terminal_writestring("addr of p: ");
+  terminal_writehex((uintptr_t)p);
+  terminal_putchar('\n');
+
+  int i = 0;
+  for (;p + PAGE_SIZE <= (char*)end; p+=PAGE_SIZE, i++) {
     kfree(p);
+    if (i > ((end - start) / PAGE_SIZE)) {
+      terminal_writestring("past the end of the range\n");
+      for (;;) {}
+    }
   }
+
+  terminal_writestring("done in freerange\n");
 }
 
 void kinit(multiboot_info_t *mbi)
@@ -40,20 +46,14 @@ void kinit(multiboot_info_t *mbi)
     uintptr_t start_addr = mmm->addr;
     uintptr_t end_addr = mmm->addr + mmm->len;
 
-    terminal_writestring("next\n");
-    if (start_addr == 0x0) {
-      cur += mmm->size + sizeof(uintptr_t);
-      continue;
-    }
-
-    if (mmm->type == MULTIBOOT_MEMORY_AVAILABLE) {
-      terminal_writestring("freeing multboot_memory_map_t range from: ");
-      terminal_writehex(start_addr);
-      terminal_writestring(" to: ");
-      terminal_writehex(end_addr);
-      terminal_putchar('\n');
-      
+    if (start_addr != 0 && mmm->type == MULTIBOOT_MEMORY_AVAILABLE) {
       freerange((void*)start_addr, (void*)end_addr);
+    } else {
+      terminal_writestring("skipping from: ");
+      terminal_writehex((uint32_t)start_addr);
+      terminal_writestring(" to: ");
+      terminal_writehex((uint32_t)end_addr);
+      terminal_putchar('\n');
     }
     cur += mmm->size + sizeof(uintptr_t);
   }

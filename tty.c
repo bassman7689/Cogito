@@ -40,7 +40,7 @@ void terminal_scrollup()
       const size_t prev_row = (y-1) * VGA_WIDTH;
       const size_t cur_row = y * VGA_WIDTH;
       clear_row(&terminal_buffer[prev_row]);
-      memmove(&terminal_buffer[prev_row], &terminal_buffer[cur_row], VGA_WIDTH);
+      memcopy(terminal_buffer + prev_row, terminal_buffer + cur_row, VGA_WIDTH * sizeof(uint16_t));
   }
   clear_row(&terminal_buffer[(VGA_HEIGHT-1)*VGA_WIDTH]);
 }

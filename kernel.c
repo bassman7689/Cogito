@@ -60,7 +60,11 @@ void kernel_main(uint32_t magic, multiboot_info_t *mbi)
     terminal_putchar('\n');
     return;
   }
- 
+
+  if ((mbi->flags & (1<<6)) == 0) {
+    terminal_writestring("No multiboot memory map was provided!\n");
+    return;
+  }
 
   terminal_writestring("Hello, Kernel World!\n");
 
