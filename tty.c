@@ -75,7 +75,7 @@ void terminal_writestring(const char* data)
 void terminal_writehex(uint32_t num) {
   char data[20];
 
-  itoa(num, data, 16);
+  lltoa(num, data, 16);
   terminal_writestring("0x");
   terminal_writestring(data);
 }
