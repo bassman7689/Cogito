@@ -15,7 +15,9 @@
 #if !defined(__i386__)
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
- 
+
+extern char end[]; // first address after kernel
+
 void print_memory_map(multiboot_info_t *mbi)
 {
   uintptr_t cur = (uintptr_t)mbi->mmap_addr;
@@ -23,10 +25,12 @@ void print_memory_map(multiboot_info_t *mbi)
 
   while (cur < end) {
     multiboot_memory_map_t* mmm = (multiboot_memory_map_t*)cur;
+    uint64_t addr = ((uint64_t)mmm->base_addr_low) | ((uint64_t)mmm->base_addr_high) << 32;
+    uint64_t len = ((uint64_t)mmm->length_low) | ((uint64_t)mmm->length_high) << 32;
     terminal_writestring("start: ");
-    terminal_writehex(mmm->addr);
+    terminal_writehex(addr);
     terminal_writestring(" length: ");
-    terminal_writehex(mmm->len);
+    terminal_writehex(len);
     switch(mmm->type) {
     case MULTIBOOT_MEMORY_AVAILABLE:
       terminal_writestring(" AVAILABLE\n");
@@ -69,10 +73,14 @@ void kernel_main(uint32_t magic, multiboot_info_t *mbi)
   terminal_writestring("Hello, Kernel World!\n");
 
   print_memory_map(mbi);
-
+ 
   terminal_writestring("Initializing page frame allocator\n");
-  kinit(mbi);
-  /* char *test_page = kalloc(); */
-  /* terminal_writestring("Test Page Address: "); */
-  /* terminal_writehex((uintptr_t)test_page); */
+  kinit(end, end+4*1024*1024);
+
+  char *test_page = kalloc();
+  terminal_writestring("Test Page Address: ");
+  terminal_writehex((uintptr_t)test_page);
+
+  /* terminal_writestring("Test Page Value: "); */
+  /* terminal_writehex(*test_page); */
 }

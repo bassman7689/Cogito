@@ -1,4 +1,6 @@
+#include <stdint.h>
 #include "string.h"
+#include "x86.h"
 
 size_t strlen(const char* str)
 {
@@ -21,10 +23,11 @@ void *memcopy(void *dst, void *src, size_t size)
 
 void *memset(void *ptr, int x, size_t size)
 {
-  char *dst = (char*)ptr;
-  for (size_t i = 0; i < size; i++) {
-    dst[i] = x;
+  if ((uintptr_t)ptr%4 == 0 && size%4 == 0) {
+    x &= 0xFF;
+    stosl(ptr, (x<<24)|(x<<16)|(x<<8)|x, size/4);
+  } else {
+    stosb(ptr, x, size);
   }
-
-  return dst;
+  return ptr;
 }
